@@ -46,3 +46,9 @@ Esta guía describe los requisitos del contenedor; no crea recursos AWS ni publi
 - No se comparten tablas: cada microservicio gestiona sus propias migraciones y credenciales.
 
 La prueba de CI verifica build/test; la prueba real con Firebase/RDS/HTTPS se realiza después del despliegue. No hay certificación de disponibilidad ni de seguridad operacional hasta completarla.
+
+## API interna servicio a servicio
+
+Configurar tres tokens de servicio distintos mediante Secrets Manager: `IDENTITY_RESERVATIONS_SERVICE_TOKEN`, `IDENTITY_PAYMENTS_SERVICE_TOKEN` y `IDENTITY_NOTIFICATIONS_SERVICE_TOKEN` (mínimo 32 caracteres aleatorios cada uno). Los secretos nunca deben viajar por la URL ni registrarse. No exponer `/internal/v1/identidad/**` en el API Gateway, balanceador público ni en la red externa. Usar TLS privado, Security Groups y rotación de tokens coordinada con cada consumidor.
+
+Reservas, Pagos y Notificaciones usan cada uno su `IDENTITY_SERVICE_TOKEN` correspondiente y rutas definidas en [contratos internos](internal-integration-contracts.md). El acceso a teléfono depende de la validación contextual de Reservas (participación y vigencia del préstamo); Identidad verifica la identidad del servicio llamante, no la operación de negocio de Reservas.

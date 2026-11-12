@@ -78,3 +78,11 @@ docker build -t lendup-identity-service:local .
 ```
 
 Consulta [la guía de entrega para AWS](docs/aws-deployment-handoff.md). Antes de arrancar el servicio, se debe crear la base y ejecutar `node scripts/migrate.cjs` con las variables de conexión. `GET /health` es una comprobación de proceso; validar `GET /api/v1/universidades` para comprobar consultas reales a MySQL.
+
+## Contratos internos para Reservas, Pagos y Notificaciones
+
+Se agregaron cuatro consultas privadas bajo `/internal/v1/identidad/**` para resolver Firebase UID, consultar elegibilidad y términos, obtener correo y consultar teléfono. Cada consumidor tiene un **token de servicio distinto** con permisos mínimos; todas las rutas de estudiantes siguen exigiendo Firebase y mantienen su contrato anterior.
+
+Para activar las rutas internas configurar en Identidad `IDENTITY_RESERVATIONS_SERVICE_TOKEN`, `IDENTITY_PAYMENTS_SERVICE_TOKEN` y `IDENTITY_NOTIFICATIONS_SERVICE_TOKEN` con secretos aleatorios diferentes (mínimo 32 caracteres). El endpoint de contacto delega la autorización contextual (reserva/participante/vigencia) al servicio de Reservas, que debe comprobarla antes de llamar.
+
+Consulta **[los contratos completos, variables de integración y pruebas de seguridad](docs/internal-integration-contracts.md)**. Estas rutas no deben publicarse en el Gateway ni usarse desde el navegador. Ningún cambio de esquema MySQL es necesario.
